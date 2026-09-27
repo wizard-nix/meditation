@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="theme-color" content="#1a0533" />
+  <title>Медитации</title>
+  <style>
+    /* ── Reset & Base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-deep:    #0d0121;
+      --bg-mid:     #1a0533;
+      --accent:     #9b6dff;
+      --accent-2:   #c29bff;
+      --gold:       #f4c97a;
+      --text:       #ede8f5;
+      --text-muted: #9b8cac;
+      --card-bg:    rgba(155,109,255,.08);
+      --card-border:rgba(155,109,255,.22);
+      --glass:      rgba(26,5,51,.72);
+      --radius:     20px;
+      --transition: .35s cubic-bezier(.4,0,.2,1);
+    }
+
+    html { height: 100%; }
+
+    body {
+      min-height: 100%;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg-deep);
+      color: var(--text);
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+      padding-bottom: env(safe-area-inset-bottom, 20px);
+    }
+
+    /* ── Animated gradient background ── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 60% at 20% 10%, rgba(90,30,180,.45) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 50% at 80% 80%, rgba(30,60,160,.35) 0%, transparent 55%),
+        radial-gradient(ellipse 50% 70% at 60% 30%, rgba(140,60,200,.20) 0%, transparent 50%);
+      animation: bgPulse 12s ease-in-out infinite alternate;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    @keyframes bgPulse {
+      0%   { opacity: .8; transform: scale(1); }
+      100% { opacity: 1;  transform: scale(1.06); }
+    }
+
+    /* ── Stars ── */
+    .stars {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    .star {
+      position: absolute;
+      width: 2px; height: 2px;
+      background: #fff;
+      border-radius: 50%;
+      animation: twinkle var(--dur, 4s) ease-in-out infinite var(--delay, 0s);
+    }
+    @keyframes twinkle {
+      0%,100% { opacity: .1; transform: scale(.8); }
+      50%      { opacity: .9; transform: scale(1.3); }
+    }
+
+    /* ── Layout ── */
+    #app {
+      position: relative;
+      z-index: 1;
+      max-width: 540px;
+      margin: 0 auto;
+      padding: 0 16px;
+    }
+
+    /* ── Header ── */
+    header {
+      text-align: center;
+      padding: 56px 0 28px;
+    }
+    .header-emoji {
+      font-size: 2.6rem;
+      display: block;
+      margin-bottom: 10px;
+      filter: drop-shadow(0 0 18px rgba(155,109,255,.7));
+      animation: float 5s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%,100% { transform: translateY(0); }
+      50%      { transform: translateY(-8px); }
+    }
+    h1 {
+      font-size: 1.7rem;
+      font-weight: 700;
+      letter-spacing: .02em;
+      background: linear-gradient(135deg, var(--accent-2), var(--gold));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .subtitle {
+      margin-top: 6px;
+      font-size: .88rem;
+      color: var(--text-muted);
+      letter-spacing: .04em;
+    }
+
+    /* ── Add Button ── */
+    #addBtn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 16px;
+      margin-bottom: 28px;
+      border: 1.5px dashed var(--card-border);
+      border-radius: var(--radius);
+      background: var(--card-bg);
+      color: var(--accent-2);
+      font-size: 1rem;
+      font-weight: 500;
+      letter-spacing: .02em;
+      cursor: pointer;
+      transition: background var(--transition), border-color var(--transition), transform .15s;
+      -webkit-tap-highlight-color: transparent;
+      backdrop-filter: blur(8px);
+    }
+    #addBtn:active { transform: scale(.97); }
+    #addBtn:hover {
+      background: rgba(155,109,255,.15);
+      border-color: var(--accent);
+    }
+    #addBtn svg { flex-shrink: 0; }
+
+    /* ── Cards grid ── */
+    #cards {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+      padding-bottom: 40px;
+    }
+
+    .card {
+      position: relative;
+      border-radius: var(--radius);
+      border: 1px solid var(--card-border);
+      background: var(--card-bg);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform var(--transition), box-shadow var(--transition);
+      -webkit-tap-highlight-color: transparent;
+      animation: cardIn .5s cubic-bezier(.4,0,.2,1) both;
+    }
+    @keyframes cardIn {
+      from { opacity: 0; transform: translateY(24px) scale(.96); }
+      to   { opacity: 1; transform: none; }
+    }
+    .card:active { transform: scale(.97); }
+    .card:hover  { box-shadow: 0 8px 32px rgba(155,109,255,.22); }
+
+    .card-glow {
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      opacity: 0;
+      background: radial-gradient(ellipse 60% 50% at 50% 50%, rgba(155,109,255,.18), transparent);
+      transition: opacity var(--transition);
+      pointer-events: none;
+    }
+    .card:hover .card-glow { opacity: 1; }
+
+    .card-inner {
+      padding: 20px 20px 20px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .card-icon {
+      width: 52px; height: 52px;
+      flex-shrink: 0;
+      border-radius: 14px;
+      background: linear-gradient(135deg, rgba(155,109,255,.35), rgba(194,155,255,.15));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+    }
+    .card-text { flex: 1; min-width: 0; }
+    .card-title {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .card-meta {
+      margin-top: 3px;
+      font-size: .78rem;
+      color: var(--text-muted);
+    }
+    .card-arrow {
+      color: var(--accent);
+      transition: transform var(--transition);
+      flex-shrink: 0;
+    }
+    .card:hover .card-arrow { transform: translateX(3px); }
+
+    .card-tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 20px;
+      background: rgba(155,109,255,.18);
+      color: var(--accent-2);
+      font-size: .72rem;
+      font-weight: 500;
+      margin-top: 5px;
+    }
+
+    /* ── Empty state ── */
+    #empty {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-muted);
+    }
+    #empty .empty-icon { font-size: 3rem; margin-bottom: 14px; opacity: .5; }
+    #empty p { font-size: .95rem; line-height: 1.6; }
+
+    /* ── Modal Overlay ── */
+    #modalOverlay {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      background: rgba(8,2,20,.65);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .3s ease;
+    }
+    #modalOverlay.open {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    /* ── Modal Sheet ── */
+    #modal {
+      width: 100%;
+      max-width: 540px;
+      max-height: 92dvh;
+      background: linear-gradient(160deg, #1d0840 0%, #12022e 100%);
+      border-top-left-radius: 28px;
+      border-top-right-radius: 28px;
+      border: 1px solid rgba(155,109,255,.28);
+      border-bottom: none;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transform: translateY(100%);
+      transition: transform .38s cubic-bezier(.4,0,.2,1);
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+    #modalOverlay.open #modal { transform: translateY(0); }
+
+    .modal-handle {
+      width: 40px; height: 4px;
+      border-radius: 2px;
+      background: rgba(155,109,255,.4);
+      margin: 14px auto 0;
+      flex-shrink: 0;
+    }
+    .modal-header {
+      padding: 20px 24px 16px;
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      flex-shrink: 0;
+      border-bottom: 1px solid rgba(155,109,255,.12);
+    }
+    .modal-icon {
+      width: 54px; height: 54px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, rgba(155,109,255,.4), rgba(194,155,255,.2));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.7rem;
+      flex-shrink: 0;
+    }
+    .modal-header-text { flex: 1; min-width: 0; }
+    .modal-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.3;
+    }
+    .modal-subtitle {
+      margin-top: 4px;
+      font-size: .8rem;
+      color: var(--text-muted);
+    }
+    #closeBtn {
+      background: rgba(155,109,255,.12);
+      border: 1px solid rgba(155,109,255,.2);
+      border-radius: 50%;
+      width: 36px; height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent-2);
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background var(--transition);
+      -webkit-tap-highlight-color: transparent;
+    }
+    #closeBtn:active { background: rgba(155,109,255,.3); }
+
+    .modal-body {
+      overflow-y: auto;
+      padding: 24px;
+      flex: 1;
+      -webkit-overflow-scrolling: touch;
+    }
+    .modal-body h3 {
+      font-size: .72rem;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      color: var(--accent);
+      margin-bottom: 14px;
+      font-weight: 600;
+    }
+    .modal-description {
+      font-size: .97rem;
+      line-height: 1.75;
+      color: #d4c8e8;
+      white-space: pre-wrap;
+    }
+
+    .modal-actions {
+      padding: 16px 24px 20px;
+      display: flex;
+      gap: 10px;
+      flex-shrink: 0;
+      border-top: 1px solid rgba(155,109,255,.1);
+    }
+    .btn-edit, .btn-delete {
+      flex: 1;
+      padding: 14px;
+      border-radius: 14px;
+      font-size: .92rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: opacity .2s, transform .15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-edit:active, .btn-delete:active { transform: scale(.96); }
+    .btn-edit {
+      background: linear-gradient(135deg, #6f32d4, #9b6dff);
+      color: #fff;
+    }
+    .btn-delete {
+      background: rgba(220,60,80,.15);
+      border: 1px solid rgba(220,60,80,.3);
+      color: #f08090;
+    }
+
+    /* ── Form Modal ── */
+    #formOverlay {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      background: rgba(8,2,20,.75);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .28s ease;
+    }
+    #formOverlay.open { opacity: 1; pointer-events: all; }
+
+    #formSheet {
+      width: 100%;
+      max-width: 540px;
+      background: linear-gradient(160deg, #1d0840 0%, #12022e 100%);
+      border-top-left-radius: 28px;
+      border-top-right-radius: 28px;
+      border: 1px solid rgba(155,109,255,.28);
+      border-bottom: none;
+      transform: translateY(100%);
+      transition: transform .38s cubic-bezier(.4,0,.2,1);
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+    #formOverlay.open #formSheet { transform: translateY(0); }
+
+    .form-handle {
+      width: 40px; height: 4px;
+      border-radius: 2px;
+      background: rgba(155,109,255,.4);
+      margin: 14px auto 0;
+    }
+    .form-head {
+      padding: 18px 24px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(155,109,255,.12);
+    }
+    .form-head h2 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent-2), var(--gold));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    #cancelBtn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: .92rem;
+      cursor: pointer;
+      padding: 4px 8px;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .form-body { padding: 22px 24px; }
+
+    .field { margin-bottom: 18px; }
+    .field label {
+      display: block;
+      font-size: .78rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .09em;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+
+    .field input, .field textarea, .field select {
+      width: 100%;
+      background: rgba(155,109,255,.08);
+      border: 1.5px solid rgba(155,109,255,.22);
+      border-radius: 14px;
+      padding: 14px 16px;
+      color: var(--text);
+      font-size: .97rem;
+      font-family: inherit;
+      line-height: 1.5;
+      outline: none;
+      transition: border-color var(--transition), background var(--transition);
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    .field select { cursor: pointer; }
+    .field input::placeholder, .field textarea::placeholder { color: var(--text-muted); }
+    .field input:focus, .field textarea:focus, .field select:focus {
+      border-color: var(--accent);
+      background: rgba(155,109,255,.14);
+    }
+    .field textarea { resize: none; min-height: 140px; }
+
+    /* Emoji picker row */
+    .emoji-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .emoji-btn {
+      width: 42px; height: 42px;
+      border-radius: 12px;
+      border: 1.5px solid rgba(155,109,255,.2);
+      background: rgba(155,109,255,.08);
+      font-size: 1.3rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color .2s, background .2s, transform .12s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .emoji-btn.selected, .emoji-btn:active {
+      border-color: var(--accent);
+      background: rgba(155,109,255,.25);
+      transform: scale(.93);
+    }
+
+    #saveBtn {
+      width: 100%;
+      padding: 16px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #6f32d4, #9b6dff);
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      margin-top: 6px;
+      letter-spacing: .02em;
+      transition: opacity .2s, transform .15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    #saveBtn:active { transform: scale(.97); opacity: .88; }
+
+    /* ── Toast ── */
+    #toast {
+      position: fixed;
+      bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: rgba(155,109,255,.9);
+      color: #fff;
+      padding: 11px 20px;
+      border-radius: 30px;
+      font-size: .88rem;
+      font-weight: 600;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity .3s, transform .3s;
+      z-index: 999;
+      white-space: nowrap;
+      backdrop-filter: blur(10px);
+    }
+    #toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* ── Search bar ── */
+    .search-wrap {
+      position: relative;
+      margin-bottom: 22px;
+    }
+    .search-wrap svg {
+      position: absolute;
+      left: 14px; top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+    #search {
+      width: 100%;
+      background: rgba(155,109,255,.07);
+      border: 1.5px solid rgba(155,109,255,.18);
+      border-radius: 14px;
+      padding: 13px 14px 13px 42px;
+      color: var(--text);
+      font-size: .95rem;
+      font-family: inherit;
+      outline: none;
+      -webkit-appearance: none;
+      appearance: none;
+      transition: border-color var(--transition);
+    }
+    #search::placeholder { color: var(--text-muted); }
+    #search:focus { border-color: var(--accent); }
+
+    /* ── Sort tabs ── */
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+    }
+    .tabs::-webkit-scrollbar { display: none; }
+    .tab {
+      padding: 7px 14px;
+      border-radius: 20px;
+      border: 1.5px solid rgba(155,109,255,.2);
+      background: transparent;
+      color: var(--text-muted);
+      font-size: .82rem;
+      font-weight: 500;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all .2s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .tab.active {
+      background: rgba(155,109,255,.22);
+      border-color: var(--accent);
+      color: var(--accent-2);
+    }
+  </style>
+</head>
+<body>
+
+<!-- Stars -->
+<div class="stars" id="stars"></div>
+
+<div id="app">
+  <header>
+    <span class="header-emoji">🔥</span>
+    <h1>Мои медитации</h1>
+    <p class="subtitle">Библиотека практик</p>
+  </header>
+
+  <button id="addBtn" aria-label="Добавить медитацию">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/>
+    </svg>
+    Добавить медитацию
+  </button>
+
+  <div class="search-wrap">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+    </svg>
+    <input type="search" id="search" placeholder="Поиск медитации…" autocomplete="off" />
+  </div>
+
+  <div class="tabs" role="tablist" id="tabs">
+    <button class="tab active" data-filter="all">Все</button>
+    <button class="tab" data-filter="дыхание">🌬 Дыхание</button>
+    <button class="tab" data-filter="осознанность">🔥 Осознанность</button>
+    <button class="tab" data-filter="визуализация">✨ Визуализация</button>
+    <button class="tab" data-filter="сон">🌙 Сон</button>
+    <button class="tab" data-filter="тело">🫀 Тело</button>
+    <button class="tab" data-filter="другое">🌀 Другое</button>
+  </div>
+
+  <div id="cards" role="list" aria-label="Карточки медитаций"></div>
+  <div id="empty" hidden>
+    <div class="empty-icon">🌿</div>
+    <p>Пока нет медитаций.<br>Нажми <strong>«Добавить»</strong>, чтобы начать.</p>
+  </div>
+</div>
+
+<!-- ── View Modal ── -->
+<div id="modalOverlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div id="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-icon" id="modalIcon"></div>
+      <div class="modal-header-text">
+        <div class="modal-title" id="modalTitle"></div>
+        <div class="modal-subtitle" id="modalSubtitle"></div>
+      </div>
+      <button id="closeBtn" aria-label="Закрыть">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <h3>Инструкция к практике</h3>
+      <div class="modal-description" id="modalDesc"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-edit" id="editBtn">✏️ Редактировать</button>
+      <button class="btn-delete" id="deleteBtn">🗑 Удалить</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Form Modal ── -->
+<div id="formOverlay" role="dialog" aria-modal="true">
+  <div id="formSheet">
+    <div class="form-handle"></div>
+    <div class="form-head">
+      <h2 id="formTitle">Новая медитация</h2>
+      <button id="cancelBtn">Отмена</button>
+    </div>
+    <div class="form-body">
+      <div class="field">
+        <label>Название</label>
+        <input type="text" id="fName" placeholder="Например: Утренняя тишина" maxlength="60" autocomplete="off" />
+      </div>
+      <div class="field">
+        <label>Категория</label>
+        <select id="fCategory">
+          <option value="дыхание">🌬 Дыхание</option>
+          <option value="осознанность">🌿 Осознанность</option>
+          <option value="визуализация">✨ Визуализация</option>
+          <option value="сон">🌙 Сон</option>
+          <option value="тело">🫀 Тело</option>
+          <option value="другое">🌀 Другое</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Иконка</label>
+        <div class="emoji-row" id="emojiRow">
+          <button class="emoji-btn selected" data-emoji="🌙">🌙</button>
+          <button class="emoji-btn" data-emoji="🌿">🌿</button>
+          <button class="emoji-btn" data-emoji="✨">✨</button>
+          <button class="emoji-btn" data-emoji="🌊">🌊</button>
+          <button class="emoji-btn" data-emoji="🔥">🔥</button>
+          <button class="emoji-btn" data-emoji="🌸">🌸</button>
+          <button class="emoji-btn" data-emoji="☁️">☁️</button>
+          <button class="emoji-btn" data-emoji="🫀">🫀</button>
+          <button class="emoji-btn" data-emoji="🌬">🌬</button>
+          <button class="emoji-btn" data-emoji="💎">💎</button>
+          <button class="emoji-btn" data-emoji="🌀">🌀</button>
+          <button class="emoji-btn" data-emoji="🕊">🕊</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>Описание / Инструкция</label>
+        <textarea id="fDesc" placeholder="Опиши шаги практики — как дышать, на чём сосредоточиться, как долго…"></textarea>
+      </div>
+      <button id="saveBtn">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+  /* ── Stars generator ── */
+  (function() {
+    const container = document.getElementById('stars');
+    for (let i = 0; i < 70; i++) {
+      const s = document.createElement('div');
+      s.className = 'star';
+      s.style.cssText = `
+        left:${Math.random()*100}%;
+        top:${Math.random()*100}%;
+        --dur:${2.5 + Math.random()*5}s;
+        --delay:${-Math.random()*6}s;
+        opacity:${0.1 + Math.random()*.6};
+        width:${Math.random() > .85 ? 3 : 2}px;
+        height:${Math.random() > .85 ? 3 : 2}px;
+      `;
+      container.appendChild(s);
+    }
+  })();
+
+  /* ── State & Storage ── */
+  const STORAGE_KEY = 'meditations_v1';
+
+  function loadData() {
+    try {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+    } catch { return []; }
+  }
+  function saveData(data) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  }
+
+  let meditations = loadData();
+  let currentId = null;
+  let activeFilter = 'all';
+  let searchQ = '';
+
+  /* ── DOM refs ── */
+  const cardsEl    = document.getElementById('cards');
+  const emptyEl    = document.getElementById('empty');
+  const addBtn     = document.getElementById('addBtn');
+  const searchEl   = document.getElementById('search');
+  const tabsEl     = document.getElementById('tabs');
+
+  const modalOverlay = document.getElementById('modalOverlay');
+  const modalIcon    = document.getElementById('modalIcon');
+  const modalTitle   = document.getElementById('modalTitle');
+  const modalSubtitle= document.getElementById('modalSubtitle');
+  const modalDesc    = document.getElementById('modalDesc');
+  const closeBtn     = document.getElementById('closeBtn');
+  const editBtn      = document.getElementById('editBtn');
+  const deleteBtn    = document.getElementById('deleteBtn');
+
+  const formOverlay  = document.getElementById('formOverlay');
+  const formSheet    = document.getElementById('formSheet');
+  const formTitleEl  = document.getElementById('formTitle');
+  const cancelBtn    = document.getElementById('cancelBtn');
+  const saveBtn      = document.getElementById('saveBtn');
+  const fName        = document.getElementById('fName');
+  const fCategory    = document.getElementById('fCategory');
+  const fDesc        = document.getElementById('fDesc');
+  const emojiRow     = document.getElementById('emojiRow');
+  const toastEl      = document.getElementById('toast');
+
+  let selectedEmoji  = '🌙';
+  let editingId      = null;
+
+  /* ── Render ── */
+  function filtered() {
+    return meditations.filter(m => {
+      const matchFilter = activeFilter === 'all' || m.category === activeFilter;
+      const q = searchQ.toLowerCase();
+      const matchSearch = !q || m.name.toLowerCase().includes(q) || m.desc.toLowerCase().includes(q);
+      return matchFilter && matchSearch;
+    });
+  }
+
+  function render() {
+    const list = filtered();
+    cardsEl.innerHTML = '';
+    emptyEl.hidden = list.length > 0;
+
+    list.forEach((m, i) => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.setAttribute('role', 'listitem');
+      card.setAttribute('tabindex', '0');
+      card.style.animationDelay = `${i * 0.06}s`;
+      card.innerHTML = `
+        <div class="card-glow"></div>
+        <div class="card-inner">
+          <div class="card-icon">${m.emoji}</div>
+          <div class="card-text">
+            <div class="card-title">${escHtml(m.name)}</div>
+            <div class="card-meta">${escHtml(m.category)}</div>
+            <span class="card-tag">${categoryLabel(m.category)}</span>
+          </div>
+          <svg class="card-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
+        </div>`;
+      card.addEventListener('click', () => openModal(m.id));
+      card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') openModal(m.id); });
+      cardsEl.appendChild(card);
+    });
+  }
+
+  const catLabels = {
+    дыхание:'🌬 Дыхание', осознанность:'🌿 Осознанность',
+    визуализация:'✨ Визуализация', сон:'🌙 Сон',
+    тело:'🫀 Тело', другое:'🌀 Другое'
+  };
+  function categoryLabel(c) { return catLabels[c] || c; }
+  function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  /* ── Modal ── */
+  function openModal(id) {
+    const m = meditations.find(x => x.id === id);
+    if (!m) return;
+    currentId = id;
+    modalIcon.textContent = m.emoji;
+    modalTitle.textContent = m.name;
+    modalSubtitle.textContent = categoryLabel(m.category);
+    modalDesc.textContent = m.desc;
+    modalOverlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    closeBtn.focus();
+  }
+  function closeModal() {
+    modalOverlay.classList.remove('open');
+    document.body.style.overflow = '';
+    currentId = null;
+  }
+
+  closeBtn.addEventListener('click', closeModal);
+  modalOverlay.addEventListener('click', e => { if (e.target === modalOverlay) closeModal(); });
+
+  deleteBtn.addEventListener('click', () => {
+    if (!currentId) return;
+    meditations = meditations.filter(m => m.id !== currentId);
+    saveData(meditations);
+    closeModal();
+    render();
+    showToast('Медитация удалена');
+  });
+
+  editBtn.addEventListener('click', () => {
+    if (!currentId) return;
+    const m = meditations.find(x => x.id === currentId);
+    closeModal();
+    openForm(m);
+  });
+
+  /* ── Form ── */
+  function openForm(m = null) {
+    editingId = m ? m.id : null;
+    formTitleEl.textContent = m ? 'Редактировать' : 'Новая медитация';
+    fName.value = m ? m.name : '';
+    fCategory.value = m ? m.category : 'дыхание';
+    fDesc.value = m ? m.desc : '';
+    selectEmoji(m ? m.emoji : '🌙');
+    formOverlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => fName.focus(), 350);
+  }
+  function closeForm() {
+    formOverlay.classList.remove('open');
+    document.body.style.overflow = '';
+    editingId = null;
+  }
+
+  function selectEmoji(e) {
+    selectedEmoji = e;
+    emojiRow.querySelectorAll('.emoji-btn').forEach(btn => {
+      btn.classList.toggle('selected', btn.dataset.emoji === e);
+    });
+  }
+
+  emojiRow.addEventListener('click', e => {
+    const btn = e.target.closest('.emoji-btn');
+    if (btn) selectEmoji(btn.dataset.emoji);
+  });
+
+  addBtn.addEventListener('click', () => openForm());
+  cancelBtn.addEventListener('click', closeForm);
+  formOverlay.addEventListener('click', e => { if (e.target === formOverlay) closeForm(); });
+
+  saveBtn.addEventListener('click', () => {
+    const name = fName.value.trim();
+    const desc = fDesc.value.trim();
+    if (!name) { fName.focus(); shakeEl(fName); return; }
+    if (!desc) { fDesc.focus(); shakeEl(fDesc); return; }
+
+    if (editingId) {
+      const idx = meditations.findIndex(m => m.id === editingId);
+      if (idx !== -1) {
+        meditations[idx] = { ...meditations[idx], name, category: fCategory.value, desc, emoji: selectedEmoji };
+        showToast('Изменения сохранены ✨');
+      }
+    } else {
+      meditations.unshift({
+        id: Date.now().toString(36) + Math.random().toString(36).slice(2),
+        name, category: fCategory.value, desc, emoji: selectedEmoji,
+        created: Date.now()
+      });
+      showToast('Медитация добавлена 🌙');
+    }
+    saveData(meditations);
+    closeForm();
+    render();
+  });
+
+  /* ── Search & Filter ── */
+  searchEl.addEventListener('input', () => {
+    searchQ = searchEl.value;
+    render();
+  });
+
+  tabsEl.addEventListener('click', e => {
+    const tab = e.target.closest('.tab');
+    if (!tab) return;
+    tabsEl.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    activeFilter = tab.dataset.filter;
+    render();
+  });
+
+  /* ── Touch swipe-to-close for modals ── */
+  setupSwipeClose(document.getElementById('modal'), closeModal);
+  setupSwipeClose(formSheet, closeForm);
+
+  function setupSwipeClose(el, closeFn) {
+    let startY = 0, dragging = false;
+    el.addEventListener('touchstart', e => {
+      startY = e.touches[0].clientY;
+      dragging = true;
+      el.style.transition = 'none';
+    }, { passive: true });
+    el.addEventListener('touchmove', e => {
+      if (!dragging) return;
+      const dy = Math.max(0, e.touches[0].clientY - startY);
+      el.style.transform = `translateY(${dy}px)`;
+    }, { passive: true });
+    el.addEventListener('touchend', e => {
+      dragging = false;
+      el.style.transition = '';
+      const dy = e.changedTouches[0].clientY - startY;
+      if (dy > 100) { el.style.transform = ''; closeFn(); }
+      else el.style.transform = '';
+    });
+  }
+
+  /* ── Keyboard ── */
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { closeModal(); closeForm(); }
+  });
+
+  /* ── Utils ── */
+  let toastTimer;
+  function showToast(msg) {
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2400);
+  }
+
+  function shakeEl(el) {
+    el.style.animation = 'none';
+    el.getBoundingClientRect();
+    el.style.animation = 'shake .35s ease';
+    el.addEventListener('animationend', () => el.style.animation = '', { once: true });
+  }
+
+  /* Shake keyframe (injected once) */
+  const style = document.createElement('style');
+  style.textContent = `@keyframes shake {
+    0%,100%{transform:translateX(0)}
+    20%{transform:translateX(-7px)}
+    40%{transform:translateX(7px)}
+    60%{transform:translateX(-5px)}
+    80%{transform:translateX(5px)}
+  }`;
+  document.head.appendChild(style);
+
+  /* ── Preload demo data ── */
+  if (meditations.length === 0) {
+    meditations = [
+      {
+        id: 'demo1',
+        name: 'Дыхание 4-7-8',
+        category: 'дыхание',
+        emoji: '🌬',
+        desc: '1. Сядь удобно, выпрями спину, закрой глаза.\n\n2. Выдохни весь воздух через рот.\n\n3. Вдыхай через нос, считая до 4.\n\n4. Задержи дыхание, считая до 7.\n\n5. Медленно выдыхай через рот, считая до 8.\n\n6. Это один цикл. Повтори 4–6 раз.\n\n✨ Идеально для снятия стресса перед сном.',
+        created: Date.now() - 86400000
+      },
+      {
+        id: 'demo2',
+        name: 'Сканирование тела',
+        category: 'тело',
+        emoji: '🫀',
+        desc: '1. Ляг или сядь в удобной позе.\n\n2. Закрой глаза и сделай три глубоких вдоха.\n\n3. Начни со ступней: ощути их тяжесть, тепло или прохладу.\n\n4. Медленно двигайся вверх: лодыжки → голени → колени → бёдра.\n\n5. Продолжай: живот → грудь → руки → шея → голова.\n\n6. Замечай ощущения без оценки. Если есть напряжение — просто дыши в это место.\n\n⏱ Время: 10–20 минут.',
+        created: Date.now() - 43200000
+      }
+    ];
+    saveData(meditations);
+  }
+
+  /* ── Init ── */
+  render();
+</script>
+</body>
+</html>
