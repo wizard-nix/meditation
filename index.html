@@ -384,91 +384,109 @@
       color: #f08090;
     }
 
-    /* ── Form Modal ── */
+    /* ── Form Screen (full-screen, like iOS Notes) ── */
     #formOverlay {
       position: fixed;
       inset: 0;
       z-index: 200;
-      background: rgba(8,2,20,.75);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      display: flex;
-      align-items: flex-end;
-      justify-content: center;
-      opacity: 0;
       pointer-events: none;
-      transition: opacity .28s ease;
     }
-    #formOverlay.open { opacity: 1; pointer-events: all; }
+    #formOverlay.open { pointer-events: all; }
 
     #formSheet {
-      width: 100%;
-      max-width: 540px;
-      background: linear-gradient(160deg, #1d0840 0%, #12022e 100%);
-      border-top-left-radius: 28px;
-      border-top-right-radius: 28px;
-      border: 1px solid rgba(155,109,255,.28);
-      border-bottom: none;
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      background: linear-gradient(170deg, #1a0438 0%, #0d0121 100%);
       transform: translateY(100%);
-      transition: transform .38s cubic-bezier(.4,0,.2,1);
-      padding-bottom: env(safe-area-inset-bottom, 0px);
+      transition: transform .4s cubic-bezier(.32,0,.2,1);
+      /* No border-radius — fills entire screen like Notes */
     }
     #formOverlay.open #formSheet { transform: translateY(0); }
 
-    .form-handle {
-      width: 40px; height: 4px;
-      border-radius: 2px;
-      background: rgba(155,109,255,.4);
-      margin: 14px auto 0;
-    }
-    .form-head {
-      padding: 18px 24px 16px;
+    /* Top nav bar — mirrors iOS nav bar */
+    .form-nav {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      border-bottom: 1px solid rgba(155,109,255,.12);
-    }
-    .form-head h2 {
-      font-size: 1.1rem;
-      font-weight: 700;
-      background: linear-gradient(135deg, var(--accent-2), var(--gold));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+      padding: calc(env(safe-area-inset-top, 14px) + 10px) 20px 14px;
+      flex-shrink: 0;
+      border-bottom: 1px solid rgba(155,109,255,.14);
+      background: rgba(13,1,33,.7);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
     }
     #cancelBtn {
       background: none;
       border: none;
-      color: var(--text-muted);
-      font-size: .92rem;
+      color: var(--accent-2);
+      font-size: 1rem;
+      font-weight: 500;
       cursor: pointer;
-      padding: 4px 8px;
+      padding: 6px 2px;
+      min-width: 70px;
+      text-align: left;
       -webkit-tap-highlight-color: transparent;
     }
+    #cancelBtn:active { opacity: .6; }
+    .form-nav-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text);
+      text-align: center;
+      flex: 1;
+    }
+    #saveBtnNav {
+      min-width: 70px;
+      text-align: right;
+      background: none;
+      border: none;
+      color: var(--accent);
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      padding: 6px 2px;
+      -webkit-tap-highlight-color: transparent;
+      transition: opacity .15s;
+    }
+    #saveBtnNav:active { opacity: .6; }
 
-    .form-body { padding: 22px 24px; }
+    /* Scrollable form body */
+    .form-scroll {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+    }
+    .form-body {
+      padding: 28px 20px;
+      max-width: 540px;
+      margin: 0 auto;
+      padding-bottom: calc(env(safe-area-inset-bottom, 20px) + 40px);
+    }
 
-    .field { margin-bottom: 18px; }
+    .field { margin-bottom: 22px; }
     .field label {
       display: block;
-      font-size: .78rem;
-      font-weight: 600;
+      font-size: .72rem;
+      font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: .09em;
+      letter-spacing: .11em;
       color: var(--accent);
-      margin-bottom: 8px;
+      margin-bottom: 9px;
     }
 
     .field input, .field textarea, .field select {
       width: 100%;
       background: rgba(155,109,255,.08);
-      border: 1.5px solid rgba(155,109,255,.22);
-      border-radius: 14px;
-      padding: 14px 16px;
+      border: 1.5px solid rgba(155,109,255,.2);
+      border-radius: 16px;
+      padding: 15px 16px;
       color: var(--text);
-      font-size: .97rem;
+      font-size: 1rem;
       font-family: inherit;
-      line-height: 1.5;
+      line-height: 1.55;
       outline: none;
       transition: border-color var(--transition), background var(--transition);
       -webkit-appearance: none;
@@ -478,22 +496,27 @@
     .field input::placeholder, .field textarea::placeholder { color: var(--text-muted); }
     .field input:focus, .field textarea:focus, .field select:focus {
       border-color: var(--accent);
-      background: rgba(155,109,255,.14);
+      background: rgba(155,109,255,.13);
     }
-    .field textarea { resize: none; min-height: 140px; }
+    /* Textarea grows, no fixed height */
+    .field textarea {
+      resize: none;
+      min-height: 200px;
+      /* Auto-grow via JS */
+    }
 
     /* Emoji picker row */
     .emoji-row {
       display: flex;
-      gap: 8px;
+      gap: 10px;
       flex-wrap: wrap;
     }
     .emoji-btn {
-      width: 42px; height: 42px;
-      border-radius: 12px;
+      width: 46px; height: 46px;
+      border-radius: 14px;
       border: 1.5px solid rgba(155,109,255,.2);
       background: rgba(155,109,255,.08);
-      font-size: 1.3rem;
+      font-size: 1.4rem;
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -501,26 +524,41 @@
       transition: border-color .2s, background .2s, transform .12s;
       -webkit-tap-highlight-color: transparent;
     }
-    .emoji-btn.selected, .emoji-btn:active {
+    .emoji-btn.selected {
       border-color: var(--accent);
-      background: rgba(155,109,255,.25);
-      transform: scale(.93);
+      background: rgba(155,109,255,.28);
+      box-shadow: 0 0 12px rgba(155,109,255,.35);
     }
+    .emoji-btn:active { transform: scale(.88); }
 
+    /* Bottom save button */
+    .form-footer {
+      flex-shrink: 0;
+      padding: 14px 20px calc(env(safe-area-inset-bottom, 16px) + 14px);
+      border-top: 1px solid rgba(155,109,255,.1);
+      background: rgba(13,1,33,.7);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      max-width: 540px;
+      width: 100%;
+      margin: 0 auto;
+      /* full width */
+      align-self: stretch;
+    }
     #saveBtn {
       width: 100%;
-      padding: 16px;
+      padding: 17px;
       border-radius: 16px;
       background: linear-gradient(135deg, #6f32d4, #9b6dff);
       color: #fff;
-      font-size: 1rem;
+      font-size: 1.02rem;
       font-weight: 700;
       border: none;
       cursor: pointer;
-      margin-top: 6px;
       letter-spacing: .02em;
       transition: opacity .2s, transform .15s;
       -webkit-tap-highlight-color: transparent;
+      box-shadow: 0 4px 24px rgba(155,109,255,.35);
     }
     #saveBtn:active { transform: scale(.97); opacity: .88; }
 
@@ -677,51 +715,54 @@
   </div>
 </div>
 
-<!-- ── Form Modal ── -->
+<!-- ── Form Screen (full-screen, like iOS Notes) ── -->
 <div id="formOverlay" role="dialog" aria-modal="true">
   <div id="formSheet">
-    <div class="form-handle"></div>
-    <div class="form-head">
-      <h2 id="formTitle">Новая медитация</h2>
+    <!-- iOS-style nav bar -->
+    <div class="form-nav">
       <button id="cancelBtn">Отмена</button>
+      <span class="form-nav-title" id="formTitle">Новая медитация</span>
+      <button id="saveBtnNav">Готово</button>
     </div>
-    <div class="form-body">
-      <div class="field">
-        <label>Название</label>
-        <input type="text" id="fName" placeholder="Например: Утренняя тишина" maxlength="60" autocomplete="off" />
-      </div>
-      <div class="field">
-        <label>Категория</label>
-        <select id="fCategory">
-          <option value="дыхание">🌬 Дыхание</option>
-          <option value="осознанность">🌿 Осознанность</option>
-          <option value="визуализация">✨ Визуализация</option>
-          <option value="сон">🌙 Сон</option>
-          <option value="тело">🫀 Тело</option>
-          <option value="другое">🌀 Другое</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>Иконка</label>
-        <div class="emoji-row" id="emojiRow">
-          <button class="emoji-btn selected" data-emoji="🌙">🌙</button>
-          <button class="emoji-btn" data-emoji="🌿">🌿</button>
-          <button class="emoji-btn" data-emoji="✨">✨</button>
-          <button class="emoji-btn" data-emoji="🌊">🌊</button>
-          <button class="emoji-btn" data-emoji="🔥">🔥</button>
-          <button class="emoji-btn" data-emoji="🌸">🌸</button>
-          <button class="emoji-btn" data-emoji="☁️">☁️</button>
-          <button class="emoji-btn" data-emoji="🫀">🫀</button>
-          <button class="emoji-btn" data-emoji="🌬">🌬</button>
-          <button class="emoji-btn" data-emoji="💎">💎</button>
-          <button class="emoji-btn" data-emoji="🌀">🌀</button>
-          <button class="emoji-btn" data-emoji="🕊">🕊</button>
+
+    <!-- Scrollable content -->
+    <div class="form-scroll">
+      <div class="form-body">
+        <div class="field">
+          <label>Название</label>
+          <input type="text" id="fName" placeholder="Например: Утренняя тишина" maxlength="60" autocomplete="off" />
+        </div>
+        <div class="field">
+          <label>Категория</label>
+          <select id="fCategory">
+            <option value="дыхание">🌬 Дыхание</option>
+            <option value="осознанность">🌿 Осознанность</option>
+            <option value="визуализация">✨ Визуализация</option>
+            <option value="сон">🌙 Сон</option>
+            <option value="тело">🫀 Тело</option>
+            <option value="другое">🌀 Другое</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Иконка</label>
+          <div class="emoji-row" id="emojiRow">
+            <button class="emoji-btn selected" data-emoji="🔥">🔥</button>
+            <button class="emoji-btn" data-emoji="🌿">🌿</button>
+            <button class="emoji-btn" data-emoji="✨">✨</button>
+            <button class="emoji-btn" data-emoji="🌊">🌊</button>
+            <button class="emoji-btn" data-emoji="🌬">🌬</button>
+            <button class="emoji-btn" data-emoji="💎">💎</button>
+          </div>
+        </div>
+        <div class="field">
+          <label>Описание / Инструкция</label>
+          <textarea id="fDesc" placeholder="Опиши шаги практики — как дышать, на чём сосредоточиться, как долго…"></textarea>
         </div>
       </div>
-      <div class="field">
-        <label>Описание / Инструкция</label>
-        <textarea id="fDesc" placeholder="Опиши шаги практики — как дышать, на чём сосредоточиться, как долго…"></textarea>
-      </div>
+    </div>
+
+    <!-- Fixed bottom button -->
+    <div class="form-footer">
       <button id="saveBtn">Сохранить</button>
     </div>
   </div>
@@ -788,6 +829,7 @@
   const formTitleEl  = document.getElementById('formTitle');
   const cancelBtn    = document.getElementById('cancelBtn');
   const saveBtn      = document.getElementById('saveBtn');
+  const saveBtnNav   = document.getElementById('saveBtnNav');
   const fName        = document.getElementById('fName');
   const fCategory    = document.getElementById('fCategory');
   const fDesc        = document.getElementById('fDesc');
@@ -796,6 +838,13 @@
 
   let selectedEmoji  = '🌙';
   let editingId      = null;
+
+  /* Auto-grow textarea */
+  function autoGrow(el) {
+    el.style.height = 'auto';
+    el.style.height = el.scrollHeight + 'px';
+  }
+  fDesc.addEventListener('input', () => autoGrow(fDesc));
 
   /* ── Render ── */
   function filtered() {
@@ -892,10 +941,16 @@
     fName.value = m ? m.name : '';
     fCategory.value = m ? m.category : 'дыхание';
     fDesc.value = m ? m.desc : '';
+    // Reset textarea height then grow to content
+    fDesc.style.height = 'auto';
+    setTimeout(() => autoGrow(fDesc), 0);
     selectEmoji(m ? m.emoji : '🌙');
+    // Scroll form to top
+    const scrollEl = document.querySelector('.form-scroll');
+    if (scrollEl) scrollEl.scrollTop = 0;
     formOverlay.classList.add('open');
     document.body.style.overflow = 'hidden';
-    setTimeout(() => fName.focus(), 350);
+    setTimeout(() => fName.focus(), 400);
   }
   function closeForm() {
     formOverlay.classList.remove('open');
@@ -903,23 +958,11 @@
     editingId = null;
   }
 
-  function selectEmoji(e) {
-    selectedEmoji = e;
-    emojiRow.querySelectorAll('.emoji-btn').forEach(btn => {
-      btn.classList.toggle('selected', btn.dataset.emoji === e);
-    });
-  }
-
-  emojiRow.addEventListener('click', e => {
-    const btn = e.target.closest('.emoji-btn');
-    if (btn) selectEmoji(btn.dataset.emoji);
-  });
-
   addBtn.addEventListener('click', () => openForm());
   cancelBtn.addEventListener('click', closeForm);
-  formOverlay.addEventListener('click', e => { if (e.target === formOverlay) closeForm(); });
+  // No overlay-click-to-close (full screen — no backdrop visible)
 
-  saveBtn.addEventListener('click', () => {
+  function doSave() {
     const name = fName.value.trim();
     const desc = fDesc.value.trim();
     if (!name) { fName.focus(); shakeEl(fName); return; }
@@ -942,6 +985,21 @@
     saveData(meditations);
     closeForm();
     render();
+  }
+
+  saveBtn.addEventListener('click', doSave);
+  saveBtnNav.addEventListener('click', doSave);
+
+  /* ── Emoji picker ── */
+  function selectEmoji(e) {
+    selectedEmoji = e;
+    emojiRow.querySelectorAll('.emoji-btn').forEach(btn => {
+      btn.classList.toggle('selected', btn.dataset.emoji === e);
+    });
+  }
+  emojiRow.addEventListener('click', e => {
+    const btn = e.target.closest('.emoji-btn');
+    if (btn) selectEmoji(btn.dataset.emoji);
   });
 
   /* ── Search & Filter ── */
@@ -959,9 +1017,8 @@
     render();
   });
 
-  /* ── Touch swipe-to-close for modals ── */
+  /* ── Touch swipe-to-close — only for the view modal, NOT the form ── */
   setupSwipeClose(document.getElementById('modal'), closeModal);
-  setupSwipeClose(formSheet, closeForm);
 
   function setupSwipeClose(el, closeFn) {
     let startY = 0, dragging = false;
